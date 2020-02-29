@@ -1,6 +1,8 @@
 # QR-Scan-Request
 A QRcode scanner with intergrated API request, implemented with electron and Instascan.
 
+Main purpose of this project is to scan a student ID and post the ID number to an API.  
+
 # Install
 1. Clone this repository or download zip
 2. run `npm install`
