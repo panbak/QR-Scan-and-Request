@@ -208,9 +208,11 @@
       });
       Instascan.Camera.getCameras().then(function (cameras) {
         if (cameras.length > 0) {
-          for(let i=0; i<cameras.length; i++){
+            //console.log(cameras.length);
+            for(let i=0; i<cameras.length; i++){
             try{
-              scanner.start(camera[i]);
+              console.log("in");
+              scanner.start(cameras[i]);
               $("#selected_camera").val(i)
               break;
             }catch(err){
@@ -232,30 +234,17 @@
       }
 
       function useCamera(){
-        Instascan.Camera.getCameras().then(function (cameras) {
-          scanner.stop(cameras[selected_camera]);
-          selected_camera = $("#selected_camera").val();
-            if (cameras.length > 0) {
-                let found=false;
-                for(let i=0; i<cameras.length; i++){
-                    try{
-                        scanner.start(camera[i]);
-                        $("#selected_camera").val(i);
-                        found = true;
-                    }catch(err){
-                        console.log("Camera "+i+" not Available.");
-                    }
-                    if(found){
-                        break;
-                    }
-                }
-                appendCameras(cameras);
-            } else {
-                alert('No cameras found.');
-            }
-        }).catch(function (e) {
-          console.error(e);
-        });
+          Instascan.Camera.getCameras().then(function (cameras) {
+              scanner.stop(cameras[selected_camera]);
+              selected_camera = $("#selected_camera").val();
+              if (cameras.length > 0) {
+                  scanner.start(cameras[selected_camera]);
+              } else {
+                  console.error('No cameras found.');
+              }
+          }).catch(function (e) {
+              console.error(e);
+          });
       }
 
       function AddZero(num) {
