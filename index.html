@@ -1,300 +1,255 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>QR Code Scanner by Panagiotis Bakas</title>
-  <link rel="stylesheet" href="bootstrap.min.css">
-  <script>window.$ = window.jQuery = require('./jquery.min.js');</script>
-  <script src="popper.min.js"></script>
-  <script src="bootstrap.min.js"></script>
-  <script src="instascan.min.js"></script>
-  <script src="axios.min.js"></script>
+    <title>QR Code Scanner by Panagiotis Bakas</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <script>
+        window.$ = window.jQuery = require('./jquery.min.js');
+    </script>
+    <script src="popper.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="instascan.min.js"></script>
+    <script src="axios.min.js"></script>
 </head>
+
 <body>
-    <header>
-        <div class="navbar navbar-dark bg-dark shadow-sm">
-          <div class="container d-flex justify-content-between">
-            <span class="navbar-brand d-flex align-items-center">
+<header>
+    <div class="navbar navbar-dark bg-dark shadow-sm">
+        <div class="container d-flex justify-content-between">
+                <span class="navbar-brand d-flex align-items-center">
               <strong>QR Code Scanner</strong>
             </span>
             <span class="nav-item">
                 <button type="button" class="btn btn-light" data-toggle="modal" data-target="#settingsModal">Settings</button>
             </span>
-          </div>
         </div>
-    </header>
-    <div class="alert alert-danger" role="alert" id="connection_lost" style="display: none;">
-        There is no connection with server.
     </div>
-    <div class="alert alert-danger" role="alert" id="unknown_response" style="display: none;">
-      Unknown response from server.
+</header>
+<div class="alert alert-danger" role="alert" id="connection_lost" style="display: none;">
+    There is no connection with server.
+</div>
+<div class="alert alert-danger" role="alert" id="unknown_response" style="display: none;">
+    Unknown response from server.
+</div>
+<div class="container">
+    <div class="row">
+        <video id="preview" class="mx-auto"></video>
     </div>
-    <div class="container">
-      <div class="row"><video id="preview" class="mx-auto"></video></div>
-      <table class="table table-striped mx-auto mt-1" id="latest_scans_table">
-          <thead>
-            <tr>
-              <th scope="col">Datetime</th>
-              <th scope="col">QR Code</th>
-              <th scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody id="latest_scans">
-          </tbody>
-        </table>
-    </div>
+    <table class="table table-striped mx-auto mt-1" id="latest_scans_table">
+        <thead>
+        <tr>
+            <th scope="col">Datetime</th>
+            <th scope="col">QR Code</th>
+            <th scope="col">Status</th>
+        </tr>
+        </thead>
+        <tbody id="latest_scans">
+        </tbody>
+    </table>
+</div>
 
-    <!-- SETTINGS MODAL -->
-    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
+<!-- SETTINGS MODAL -->
+<div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+                <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <h6>Select Camera:</h6>
                 <div class="form-group">
-                  <select id="selected_camera" class="custom-select" onchange="useCamera()">
-                    
-                  </select>
+                    <select id="selected_camera" class="custom-select" onchange="useCamera()">
+
+                    </select>
                 </div>
                 <h6>API URL:</h6>
                 <div class="row">
                     <div class="col-8">
-                      <input type="text" class="form-control" id="url">
+                        <input type="text" class="form-control" id="url">
                     </div>
                     <div class="col-4">
-                      <select id="selected_method" class="custom-select">
-                        <option value="post">Post</option>
-                        <option value="get">Get</option>
-                      </select>
+                        <select id="selected_method" class="custom-select">
+                            <option value="post">Post</option>
+                            <option value="get">Get</option>
+                        </select>
                     </div>
                 </div>
-                <h6>Field Names:</h6>
-              <form>
-                <div class="row">
-                  <div class="col">
-                    <label for="qrcode" class="col-form-label">QR Code:</label>
-                    <input type="text" class="form-control" id="qrcode">
-                  </div>
-                  <div class="col">
-                    <label for="otpid" class="col-form-label">OTP ID:</label>
-                    <input type="text" class="form-control" id="otpid">
-                  </div>
-                </div>  
-                <div class="form-group">
-                  <label for="sessionid" class="col-form-label">Session ID:</label>
-                  <input type="text" class="form-control" id="sessionid">
-                </div> 
-                <div class="row"> 
-                  <div class="col">
-                    <label for="username" class="col-form-label">Username:</label>
-                    <input type="text" class="form-control" id="username">
-                  </div> 
-                  <div class="col">
-                    <label for="password" class="col-form-label">Password:</label>
-                    <input type="text" class="form-control" id="password">
-                  </div> 
-                </div>
-                <h6>Credentials:</h6>
-                <div class="row">
-                  <div class="col">
-                    <label for="admin_username" class="col-form-label">Admin Username:</label>
-                    <input type="text" class="form-control" id="admin_username">
-                  </div> 
-                  <div class="col">
-                    <label for="admin_password" class="col-form-label">Admin Password:</label>
-                    <input type="password" class="form-control" id="admin_password">
-                  </div> 
-                </div> 
-                <div class="row">
-                  <div class="col">
-                    <label for="your_otpid" class="col-form-label">Your OTP id:</label>
-                    <input type="text" class="form-control" id="your_otpid">
-                  </div> 
-                  <div class="col">
-                    <label for="your_sessionid" class="col-form-label">Your Session id:</label>
-                    <input type="text" class="form-control" id="your_sessionid">
-                  </div> 
-                </div> 
-                <h6>Responses:</h6>
-                <div class="row">
-                  <div class="col">
-                    <label for="success" class="col-form-label">Success:</label>
-                    <input type="text" class="form-control" id="success">
-                  </div>
-                  <div class="col">
-                    <label for="fail" class="col-form-label">Fail:</label>
-                    <input type="text" class="form-control" id="fail">
-                  </div>  
-                </div>                
-              </form>
+                <form id="setting_form">
+                    <h6>Responses:</h6>
+                    <div class="row">
+                        <div class="col">
+                            <label for="success" class="col-form-label">Success:</label>
+                            <input type="text" class="form-control" id="success">
+                        </div>
+                        <div class="col">
+                            <label for="fail" class="col-form-label">Fail:</label>
+                            <input type="text" class="form-control" id="fail">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="qrcode" class="col-form-label">Field name for QR Code:</label>
+                        <input type="text" class="form-control" id="qrcode">
+                    </div>
+                    <h6>Fields:</h6>
+                </form>
+                <button class="btn btn-outline-primary mt-2" onclick="add_field()">Add Field</button>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" onclick="changeSettings()" data-dismiss="modal">Change Settings</button>
+                <button type="button" class="btn btn-success">Save Settings to File</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="changeSettings()" data-dismiss="modal">Change Settings</button>
             </div>
-          </div>
         </div>
     </div>
-    <!-- SETTINGS MODAL END -->
+</div>
+<!-- SETTINGS MODAL END -->
 
-    <script type="text/javascript">
-      //DEFAULT FIELD NAMES
+<script type="text/javascript">
+    //DEFAULT FIELD NAMES
 
-      var qrcode = "QRcode";
-      var otpid = "otpID";
-      var sessionid = "sessionID";
-      var username = "username";
-      var password = "password";
-      var success = "success";
-      var fail = "fail";
-      var url = "http://";
-      var selected_method = "post";
+    var qrcode = "QRcode";
+    var success = "success";
+    var fail = "fail";
+    var url = "http://";
+    var selected_method = "post";
 
-      //SET VALUES OF FIELDS
+    //SET VALUES OF FIELDS
 
-      $("#qrcode").val(qrcode);
-      $("#otpid").val(otpid);
-      $("#sessionid").val(sessionid);
-      $("#username").val(username);
-      $("#password").val(password);
-      $("#success").val(success);
-      $("#fail").val(fail);
-      $("#url").val(url);
-      $("#selected_method").val(selected_method);
+    $("#qrcode").val(qrcode);
+    $("#success").val(success);
+    $("#fail").val(fail);
+    $("#url").val(url);
+    $("#selected_method").val(selected_method);
 
-      //CREDENTIALS
+    ///////////////////
 
-      var your_otpid = "";
-      var your_sessionid = "";
-      var admin_username = "";
-      var admin_password = "";
-
-      ///////////////////
-
-      var selected_camera = 0;
-      var scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
-      scanner.addListener('scan', function (content) {
+    var selected_camera = 0;
+    var scanner = new Instascan.Scanner({
+        video: document.getElementById('preview')
+    });
+    scanner.addListener('scan', function(content) {
         let now = new Date();
-        let now_formatted = [[AddZero(now.getDate()), AddZero(now.getMonth() + 1), now.getFullYear()].join("/"), [AddZero(now.getHours()), AddZero(now.getMinutes())].join(":"), now.getHours() >= 12 ? "PM" : "AM"].join(" ");
+        let now_formatted = [
+            [AddZero(now.getDate()), AddZero(now.getMonth() + 1), now.getFullYear()].join("/"), [AddZero(now.getHours()), AddZero(now.getMinutes())].join(":"), now.getHours() >= 12 ? "PM" : "AM"
+        ].join(" ");
         let api_request_config = request_config_builder(content);
         $("#unknown_response").hide();
         axios(api_request_config).then((response) => {
-          if(response.data == success.trim()){
-            $("#latest_scans").prepend("<tr><td>"+now_formatted+"</td><td>"+content+"</td><td><span class='text-success'>"+success+"</span></td></tr>");
-            let rowCount = $('#latest_scans tr').length;
-            if(rowCount>5){
-              $('#latest_scans tr').last().remove();
+            if (response.data == success.trim()) {
+                $("#latest_scans").prepend("<tr><td>" + now_formatted + "</td><td>" + content + "</td><td><span class='text-success'>" + success + "</span></td></tr>");
+                let rowCount = $('#latest_scans tr').length;
+                if (rowCount > 5) {
+                    $('#latest_scans tr').last().remove();
+                }
+            } else if (response.data == fail.trim()) {
+                $("#latest_scans").prepend("<tr><td>" + now_formatted + "</td><td>" + content + "</td><td><span class='text-danger'>" + fail + "</span></td></tr>");
+                let rowCount = $('#latest_scans tr').length;
+                if (rowCount > 5) {
+                    $('#latest_scans tr').last().remove();
+                }
+            } else {
+                console.log(response);
+                $("#unknown_response").show();
             }
-          }else if(response.data == fail.trim()){
-            $("#latest_scans").prepend("<tr><td>"+now_formatted+"</td><td>"+content+"</td><td><span class='text-danger'>"+fail+"</span></td></tr>");
+        }).catch(function(error) {
+            $("#latest_scans").prepend("<tr><td>" + now_formatted + "</td><td>" + content + "</td><td><span class='text-danger'>" + fail + "</span></td></tr>");
             let rowCount = $('#latest_scans tr').length;
-            if(rowCount>5){
-              $('#latest_scans tr').last().remove();
-            }           
-          }else{
-            $("#unknown_response").show();
-          }
-        }).catch(function (error) {
-          $("#latest_scans").prepend("<tr><td>"+now_formatted+"</td><td>"+content+"</td><td><span class='text-danger'>"+fail+"</span></td></tr>");
-          let rowCount = $('#latest_scans tr').length;
-          if(rowCount>5){
-            $('#latest_scans tr').last().remove();
-          }
+            if (rowCount > 5) {
+                $('#latest_scans tr').last().remove();
+            }
         });
-      });
-      Instascan.Camera.getCameras().then(function (cameras) {
+    });
+    Instascan.Camera.getCameras().then(function(cameras) {
         if (cameras.length > 0) {
-            //console.log(cameras.length);
-            for(let i=0; i<cameras.length; i++){
-            try{
-              console.log("in");
-              scanner.start(cameras[i]);
-              $("#selected_camera").val(i)
-              break;
-            }catch(err){
-              console.log("Camera "+i+" not Available.");
+            for (let i = 0; i < cameras.length; i++) {
+                try {
+                    scanner.start(cameras[i]);
+                    $("#selected_camera").val(i)
+                    break;
+                } catch (err) {
+                    console.log("Camera " + i + " not Available.");
+                }
             }
-          }
-          appendCameras(cameras);
+            appendCameras(cameras);
         } else {
-          alert('No cameras found.');
+            alert('No cameras found.');
         }
-      }).catch(function (e) {
-        console.error(e);
-      });
+    }).catch(function(e) {
+        alert("Cannot access video input. Please check if camera is already used.");
+    });
 
-      function appendCameras(cameras){
-        for(let i=0; i<cameras.length; i++){
-          $("#selected_camera").append('<option value="'+i+'">'+cameras[i].name+'</option>');
+    function appendCameras(cameras) {
+        for (let i = 0; i < cameras.length; i++) {
+            $("#selected_camera").append('<option value="' + i + '">' + cameras[i].name + '</option>');
         }
-      }
+    }
 
-      function useCamera(){
-          Instascan.Camera.getCameras().then(function (cameras) {
-              scanner.stop(cameras[selected_camera]);
-              selected_camera = $("#selected_camera").val();
-              if (cameras.length > 0) {
-                  scanner.start(cameras[selected_camera]);
-              } else {
-                  console.error('No cameras found.');
-              }
-          }).catch(function (e) {
-              console.error(e);
-          });
-      }
+    function useCamera() {
+        Instascan.Camera.getCameras().then(function(cameras) {
+            scanner.stop(cameras[selected_camera]);
+            selected_camera = $("#selected_camera").val();
+            if (cameras.length > 0) {
+                scanner.start(cameras[selected_camera]);
+            } else {
+                console.error('No cameras found.');
+            }
+        }).catch(function(e) {
+            console.error(e);
+        });
+    }
 
-      function AddZero(num) {
+    function AddZero(num) {
         return (num >= 0 && num < 10) ? "0" + num : num + "";
-      }
+    }
 
-      function changeSettings(){
+    function changeSettings() {
         qrcode = $("#qrcode").val();
-        otpid = $("#otpid").val();
-        sessionid = $("#sessionid").val();
-        username = $("#username").val();
-        password = $("#password").val();
         success = $("#success").val();
         fail = $("#fail").val();
         url = $("#url").val();
         selected_method = $("#selected_method").val();
+    }
 
-        your_otpid = $("#your_otpid").val();
-        your_sessionid = $("#your_sessionid").val();
-        admin_username = $("#admin_username").val();
-        admin_password = $("#admin_password").val();
-      }
+    function add_field() {
+        let field = '<div class="row extra-fields mt-2"> <div class="col"> <input type="text" class="form-control field-name" placeholder="Field Name"> </div> <div class="col"> <input type="text" class="form-control field-value" placeholder="Field Value"> </div> </div>';
+        $("#setting_form").append(field);
+    }
 
-      function request_config_builder(content){
+    function request_config_builder(content) {
+
+        let extra_fields = $(".extra-fields");
+
         let configuration = {};
         let params = new URLSearchParams();
         configuration['url'] = url.trim();
         configuration['method'] = selected_method.trim();
         params.append(qrcode.trim(), content.trim());
-        if(your_otpid.length>0){params.append(otpid.trim(), your_otpid);}
-        if(your_sessionid.length>0){params.append(sessionid.trim(), your_sessionid);}
-        if(admin_username.length>0){params.append(username.trim(), admin_username);}
-        if(admin_password.length>0){params.append(password.trim(), admin_password);}
+        for (let i = 0; i < extra_fields.length; i++) {
+            if ($(extra_fields[0]).find('.field-name').val().trim().length > 0) {
+                params.append($(extra_fields[0]).find('.field-name').val().trim(), $(extra_fields[0]).find('.field-value').val());
+            }
+        }
         configuration['data'] = params;
 
         return configuration;
-      }
+    }
 
-      setInterval(function(){ 
+    setInterval(function() {
         axios({
-          method: selected_method,
-          url: url
+            method: selected_method,
+            url: url
         }).then((response) => {
-          $("#connection_lost").hide();
-        }).catch(function (error) {
-          $("#connection_lost").show();
+            $("#connection_lost").hide();
+        }).catch(function(error) {
+            $("#connection_lost").show();
         });
-      }, 5000);
-      
-    </script>
-   
+    }, 5000);
+</script>
+
 </body>
+
 </html>
