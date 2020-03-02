@@ -54,7 +54,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
+                <h5 class="modal-title" id="settingsModalLabel">Settings</h5><button type="button" data-toggle="tooltip" data-placement="top" title="qr_code_scanner_settings.conf in same directory with app" class="btn btn-info ml-3" onclick="loadSettings()">Load Settings from File</button>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -99,7 +99,7 @@
                 <button class="btn btn-outline-primary mt-2" onclick="add_field()">Add Field</button>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-success">Save Settings to File</button>
+                <button type="button" class="btn btn-outline-success" id="save_settings_button" onclick="saveSettings()">Save Settings to File</button><div class="spinner-border text-success" id="save_settings_loader" style="display: none;" role="status"><span class="sr-only">Saving...</span></div>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="changeSettings()" data-dismiss="modal">Change Settings</button>
             </div>
@@ -214,15 +214,51 @@
         selected_method = $("#selected_method").val();
     }
 
+    function saveSettings() {
+        let extra_fields = $(".extra-fields");
+        console.log(extra_fields);
+        let configuration = {};
+        let params = {};
+        configuration['url'] = url.trim();
+        configuration['method'] = selected_method.trim();
+        params[qrcode.trim()] = '';
+        for (let i = 0; i < extra_fields.length; i++) {
+            if ($(extra_fields[i]).find('.field-name').val().trim().length > 0) {
+                params[$(extra_fields[i]).find('.field-name').val().trim()] = $(extra_fields[i]).find('.field-value').val();
+            }
+        }
+        configuration['data'] = params;
+
+        $("#save_settings_loader").show();
+        let fs = require("fs");
+        fs.writeFile('qr_code_scanner_settings.conf', JSON.stringify(configuration), function(err) {
+            if (err) {
+                alert("Save Setting to File failed!");
+            }else{
+                $("#save_settings_button").html("Saved!");
+            }
+        });
+        $("#save_settings_loader").hide();
+
+        fs.readFile('qr_code_scanner_settings.conf', function (err, data) {
+            if (err) {
+                return console.error(err);
+            }
+            console.log("Asynchronous read: " + data.toString());
+        });
+    }
+
+    $('#settingsModal').on('hidden.bs.modal', function () {
+        $("#save_settings_button").html("Save Setting to File");
+    });
+
     function add_field() {
         let field = '<div class="row extra-fields mt-2"> <div class="col"> <input type="text" class="form-control field-name" placeholder="Field Name"> </div> <div class="col"> <input type="text" class="form-control field-value" placeholder="Field Value"> </div> </div>';
         $("#setting_form").append(field);
     }
 
     function request_config_builder(content) {
-
         let extra_fields = $(".extra-fields");
-
         let configuration = {};
         let params = new URLSearchParams();
         configuration['url'] = url.trim();
@@ -234,7 +270,6 @@
             }
         }
         configuration['data'] = params;
-
         return configuration;
     }
 
