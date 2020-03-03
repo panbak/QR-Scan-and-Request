@@ -1,7 +1,7 @@
 # QR-Scan-Request
 A QRcode scanner with intergrated API request, implemented with electron and Instascan.
 
-The user can add dynamically fields, so the app send those data in additions with QR code to an API. 
+The user can add dynamically fields and the app sends the data to an API. 
 
 # Install
 1. Clone this repository or download zip
